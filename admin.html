@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin simple</title>
+</head>
+<body>
+  <h1>Interface Admin</h1>
+  <textarea id="content" rows="10" cols="50" placeholder="Écris ici ton contenu..."></textarea><br />
+  <button onclick="saveContent()">Sauvegarder</button>
+  <p id="status"></p>
+
+  <script>
+    function saveContent() {
+      const content = document.getElementById('content').value;
+      localStorage.setItem('siteContent', content);
+      document.getElementById('status').textContent = 'Contenu sauvegardé localement.';
+    }
+
+    window.onload = () => {
+      const saved = localStorage.getItem('siteContent');
+      if (saved) {
+        document.getElementById('content').value = saved;
+      }
+    };
+  </script>
+</body>
+</html>
