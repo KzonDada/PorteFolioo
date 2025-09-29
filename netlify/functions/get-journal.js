@@ -1,30 +1,16 @@
-const { Client } = require('pg');
+import { readFileSync } from "fs";
+import { join } from "path";
 
-exports.handler = async function(event, context) {
-  const client = new Client({
-    connectionString: process.env.NEON_CONNECTION,
-    ssl: { rejectUnauthorized: false }
-  });
-
+export async function handler() {
   try {
-    await client.connect();
-
-    const res = await client.query('SELECT content, updated_at FROM journal WHERE id = 1');
-    await client.end();
-
-    if (res.rows.length === 0) {
-      return { statusCode: 404, body: 'Journal non trouvé' };
-    }
-
+    const filePath = join(process.cwd(), "netlify/functions/journal.json");
+    const data = readFileSync(filePath, "utf8");
+    const entries = JSON.parse(data);
     return {
       statusCode: 200,
-      body: JSON.stringify(res.rows[0]),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      body: JSON.stringify(entries),
     };
-  } catch (error) {
-    console.error(error);
-    return { statusCode: 500, body: 'Erreur serveur' };
+  } catch (err) {
+    return { statusCode: 500, body: "Erreur lors de la lecture du journal" };
   }
-};
+}
