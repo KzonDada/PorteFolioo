@@ -1,8 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("journalForm");
 
-  // Charger les entrées existantes
-  loadEntries();
+  loadEntries(); // Charger les entrées existantes
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
