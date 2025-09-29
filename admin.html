@@ -1,85 +1,114 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Journal de Bord</title>
-    <link rel="stylesheet" href="style.css"> <!-- Ton CSS existant -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Journal de Bord</title>
+  <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-    <h1>Admin - Journal de Bord</h1>
+
+  <!-- Bouton Admin (utile si tu veux accéder à une autre page admin) -->
+  <a id="adminButton" href="admin.html" class="admin-btn">Admin</a>
+
+  <header>
+    <h1>Journal de Bord</h1>
+    <p>Gérez vos entrées facilement</p>
+  </header>
+
+  <main style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
 
     <!-- Tableau des entrées -->
-    <table id="journalTable" border="1">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Réalisation</th>
-                <th>Preuve / Notes</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Les entrées seront ajoutées ici via JavaScript -->
-        </tbody>
+    <table id="journalTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Réalisation</th>
+          <th>Preuve / Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Les entrées seront ajoutées ici via JavaScript -->
+      </tbody>
     </table>
 
     <!-- Formulaire pour ajouter une nouvelle entrée -->
-    <h2>Ajouter une nouvelle entrée</h2>
-    <form id="journalForm" enctype="multipart/form-data">
-        <label>Date :</label>
-        <input type="date" id="date" required><br>
+    <form id="journalForm">
+      <h2>Ajouter une nouvelle entrée</h2>
 
-        <label>Réalisation :</label>
-        <textarea id="realisation" required></textarea><br>
+      <label for="date">Date :</label>
+      <input type="date" id="date" required>
 
-        <label>Preuve / Notes (fichier) :</label>
-        <input type="file" id="file"><br>
+      <label for="realisation">Réalisation :</label>
+      <textarea id="realisation" required></textarea>
 
-        <button type="submit">Ajouter</button>
+      <label for="file">Preuve / Notes (fichier) :</label>
+      <input type="file" id="file">
+
+      <button type="submit">Ajouter</button>
     </form>
 
-<script>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 - Portfolio SIN</p>
+  </footer>
+
+  <script>
     // Fonction pour charger les entrées depuis Netlify Function
     async function loadEntries() {
+      try {
         const res = await fetch("/.netlify/functions/get-journal");
+        if (!res.ok) throw new Error("Erreur récupération journal");
         const entries = await res.json();
         const tbody = document.querySelector("#journalTable tbody");
         tbody.innerHTML = "";
         entries.forEach(e => {
-            let fileLink = "";
-            if (e.fileName && e.fileBase64) {
-                fileLink = `<a href="data:application/octet-stream;base64,${e.fileBase64}" download="${e.fileName}">${e.fileName}</a>`;
-            }
-            tbody.innerHTML += `<tr>
-                <td>${e.date}</td>
-                <td>${e.realisation}</td>
-                <td>${fileLink || e.notes}</td>
-            </tr>`;
+          let fileLink = "";
+          if (e.fileName && e.fileBase64) {
+            fileLink = `<a href="data:application/octet-stream;base64,${e.fileBase64}" download="${e.fileName}">${e.fileName}</a>`;
+          }
+          tbody.innerHTML += `<tr>
+            <td>${e.date}</td>
+            <td>${e.realisation}</td>
+            <td>${fileLink || e.notes}</td>
+          </tr>`;
         });
+      } catch (err) {
+        console.error(err);
+        alert("Impossible de charger les entrées du journal.");
+      }
     }
 
     // Gestion de l'envoi du formulaire
     document.getElementById("journalForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
+      e.preventDefault();
 
-        const formData = new FormData();
-        formData.append("date", document.getElementById("date").value);
-        formData.append("realisation", document.getElementById("realisation").value);
-        const fileInput = document.getElementById("file");
-        if (fileInput.files.length > 0) {
-            formData.append("file", fileInput.files[0]);
-        }
+      const formData = new FormData();
+      formData.append("date", document.getElementById("date").value);
+      formData.append("realisation", document.getElementById("realisation").value);
+      const fileInput = document.getElementById("file");
+      if (fileInput.files.length > 0) {
+        formData.append("file", fileInput.files[0]);
+      }
 
-        await fetch("/.netlify/functions/save-journal", {
-            method: "POST",
-            body: formData
+      try {
+        const res = await fetch("/.netlify/functions/save-journal", {
+          method: "POST",
+          body: formData
         });
-
+        if (!res.ok) throw new Error("Erreur ajout entrée");
+        document.getElementById("journalForm").reset();
         loadEntries();
+      } catch (err) {
+        console.error(err);
+        alert("Impossible d'ajouter l'entrée.");
+      }
     });
 
     // Charger les entrées au démarrage
     loadEntries();
-</script>
+  </script>
+
 </body>
 </html>
