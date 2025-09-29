@@ -8,107 +8,48 @@
 </head>
 <body>
 
-  <!-- Bouton Admin (utile si tu veux accéder à une autre page admin) -->
-  <a id="adminButton" href="admin.html" class="admin-btn">Admin</a>
-
   <header>
-    <h1>Journal de Bord</h1>
-    <p>Gérez vos entrées facilement</p>
+    <h1>Admin Journal de Bord</h1>
+    <a href="index.html" class="button admin-btn">Retour au site</a>
+    <a href="index.html" class="button">Retour à l'accueil</a>
   </header>
 
-  <main style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
+  <main>
+    <!-- Formulaire d'ajout -->
+    <section class="card">
+      <h2>Ajouter une entrée</h2>
+      <form id="journalForm">
+        <label for="date">Date :</label>
+        <input type="date" id="date" required>
+
+        <label for="realisations">Réalisation :</label>
+        <textarea id="realisations" placeholder="Décris ce que tu as fait..." required></textarea>
+
+        <label for="notes">Preuve / Notes :</label>
+        <input type="file" id="notes">
+
+        <button type="submit">Ajouter</button>
+      </form>
+    </section>
 
     <!-- Tableau des entrées -->
-    <table id="journalTable">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Réalisation</th>
-          <th>Preuve / Notes</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Les entrées seront ajoutées ici via JavaScript -->
-      </tbody>
-    </table>
-
-    <!-- Formulaire pour ajouter une nouvelle entrée -->
-    <form id="journalForm">
-      <h2>Ajouter une nouvelle entrée</h2>
-
-      <label for="date">Date :</label>
-      <input type="date" id="date" required>
-
-      <label for="realisation">Réalisation :</label>
-      <textarea id="realisation" required></textarea>
-
-      <label for="file">Preuve / Notes (fichier) :</label>
-      <input type="file" id="file">
-
-      <button type="submit">Ajouter</button>
-    </form>
-
+    <section class="card">
+      <h2>Journal de Bord</h2>
+      <table id="journalTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Réalisation</th>
+            <th>Preuve / Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Les entrées seront ajoutées ici -->
+        </tbody>
+      </table>
+    </section>
   </main>
 
-  <footer>
-    <p>&copy; 2025 - Portfolio SIN</p>
-  </footer>
-
-  <script>
-    // Fonction pour charger les entrées depuis Netlify Function
-    async function loadEntries() {
-      try {
-        const res = await fetch("/.netlify/functions/get-journal");
-        if (!res.ok) throw new Error("Erreur récupération journal");
-        const entries = await res.json();
-        const tbody = document.querySelector("#journalTable tbody");
-        tbody.innerHTML = "";
-        entries.forEach(e => {
-          let fileLink = "";
-          if (e.fileName && e.fileBase64) {
-            fileLink = `<a href="data:application/octet-stream;base64,${e.fileBase64}" download="${e.fileName}">${e.fileName}</a>`;
-          }
-          tbody.innerHTML += `<tr>
-            <td>${e.date}</td>
-            <td>${e.realisation}</td>
-            <td>${fileLink || e.notes}</td>
-          </tr>`;
-        });
-      } catch (err) {
-        console.error(err);
-        alert("Impossible de charger les entrées du journal.");
-      }
-    }
-
-    // Gestion de l'envoi du formulaire
-    document.getElementById("journalForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const formData = new FormData();
-      formData.append("date", document.getElementById("date").value);
-      formData.append("realisation", document.getElementById("realisation").value);
-      const fileInput = document.getElementById("file");
-      if (fileInput.files.length > 0) {
-        formData.append("file", fileInput.files[0]);
-      }
-
-      try {
-        const res = await fetch("/.netlify/functions/save-journal", {
-          method: "POST",
-          body: formData
-        });
-        if (!res.ok) throw new Error("Erreur ajout entrée");
-        document.getElementById("journalForm").reset();
-        loadEntries();
-      } catch (err) {
-        console.error(err);
-        alert("Impossible d'ajouter l'entrée.");
-      }
-    });
-
-    // Charger les entrées au démarrage
-    loadEntries();
-  </script>
-
+  <script src="admin.js"></script>
 </body>
 </html>
