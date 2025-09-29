@@ -1,29 +1,23 @@
-const { Client } = require('pg');
+import { readFileSync, writeFileSync } from "fs";
+import { join } from "path";
 
-exports.handler = async function(event, context) {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+export async function handler(event) {
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, body: "Méthode non autorisée" };
   }
-
-  const client = new Client({
-    connectionString: process.env.NEON_CONNECTION,
-    ssl: { rejectUnauthorized: false }
-  });
 
   try {
-    await client.connect();
-    const data = JSON.parse(event.body);
-    const query = `
-      INSERT INTO journal (id, content, updated_at) 
-      VALUES (1, $1, NOW())
-      ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, updated_at = NOW();
-    `;
-    await client.query(query, [data.content]);
-    await client.end();
+    const newEntry = JSON.parse(event.body);
 
-    return { statusCode: 200, body: 'Journal sauvegardé avec succès' };
-  } catch (error) {
-    console.error(error);
-    return { statusCode: 500, body: 'Erreur serveur' };
+    const filePath = join(process.cwd(), "netlify/functions/journal.json");
+    const data = readFileSync(filePath, "utf8");
+    const entries = JSON.parse(data);
+
+    entries.push(newEntry);
+    writeFileSync(filePath, JSON.stringify(entries, null, 2));
+
+    return { statusCode: 200, body: JSON.stringify({ message: "Entrée ajoutée" }) };
+  } catch (err) {
+    return { statusCode: 500, body: "Erreur lors de l'ajout de l'entrée" };
   }
-};
+}
