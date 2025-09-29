@@ -8,10 +8,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const date = document.getElementById("date").value;
     const realisations = document.getElementById("realisations").value;
-    const notesInput = document.getElementById("notes");
-    const notesFile = notesInput.files[0]?.name || "";
+    const notes = document.getElementById("notes").value || "";
 
-    const newEntry = { date, realisations, notes: notesFile };
+    const newEntry = { date, realisations, notes };
 
     try {
       const res = await fetch("/.netlify/functions/save-journal", {
