@@ -1,28 +1,34 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Admin simple</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Journal</title>
+<link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <h1>Interface Admin</h1>
-  <textarea id="content" rows="10" cols="50" placeholder="Écris ici ton contenu..."></textarea><br />
-  <button onclick="saveContent()">Sauvegarder</button>
-  <p id="status"></p>
+<h1>Admin Journal de Bord</h1>
 
-  <script>
-    function saveContent() {
-      const content = document.getElementById('content').value;
-      localStorage.setItem('siteContent', content);
-      document.getElementById('status').textContent = 'Contenu sauvegardé localement.';
-    }
+<form id="journalForm">
+    <label>Date: <input type="date" id="date" required></label><br>
+    <label>Réalisation: <textarea id="realisation" required></textarea></label><br>
+    <label>Preuve/Notes: <input type="file" id="file"></label><br>
+    <button type="submit">Ajouter</button>
+</form>
 
-    window.onload = () => {
-      const saved = localStorage.getItem('siteContent');
-      if (saved) {
-        document.getElementById('content').value = saved;
-      }
-    };
-  </script>
+<table border="1" id="journalTable">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Réalisation</th>
+            <th>Preuve/Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Les entrées seront ajoutées ici -->
+    </tbody>
+</table>
+
+<script src="admin.js"></script>
 </body>
 </html>
