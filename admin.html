@@ -38,47 +38,48 @@
         <button type="submit">Ajouter</button>
     </form>
 
-    <script>
-        // Fonction pour charger les entrées depuis Netlify Function
-        async function loadEntries() {
-            const res = await fetch("/.netlify/functions/get-journal");
-            const entries = await res.json();
-            const tbody = document.querySelector("#journalTable tbody");
-            tbody.innerHTML = "";
-            entries.forEach(e => {
-                let fileLink = "";
-                if (e.fileName && e.fileBase64) {
-                    fileLink = `<a href="data:application/octet-stream;base64,${e.fileBase64}" download="${e.fileName}">${e.fileName}</a>`;
-                }
-                tbody.innerHTML += `<tr>
-                    <td>${e.date}</td>
-                    <td>${e.realisation}</td>
-                    <td>${fileLink || e.notes}</td>
-                </tr>`;
-            });
+<script>
+    // Fonction pour charger les entrées depuis Netlify Function
+    async function loadEntries() {
+        const res = await fetch("/.netlify/functions/get-journal");
+        const entries = await res.json();
+        const tbody = document.querySelector("#journalTable tbody");
+        tbody.innerHTML = "";
+        entries.forEach(e => {
+            let fileLink = "";
+            if (e.fileName && e.fileBase64) {
+                fileLink = `<a href="data:application/octet-stream;base64,${e.fileBase64}" download="${e.fileName}">${e.fileName}</a>`;
+            }
+            tbody.innerHTML += `<tr>
+                <td>${e.date}</td>
+                <td>${e.realisation}</td>
+                <td>${fileLink || e.notes}</td>
+            </tr>`;
+        });
+    }
+
+    // Gestion de l'envoi du formulaire
+    document.getElementById("journalForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData();
+        formData.append("date", document.getElementById("date").value);
+        formData.append("realisation", document.getElementById("realisation").value);
+        const fileInput = document.getElementById("file");
+        if (fileInput.files.length > 0) {
+            formData.append("file", fileInput.files[0]);
         }
 
-        // Gestion de l'envoi du formulaire
-        document.getElementById("journalForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            const formData = new FormData();
-            formData.append("date", document.getElementById("date").value);
-            formData.append("realisation", document.getElementById("realisation").value);
-            const fileInput = document.getElementById("file");
-            if (fileInput.files.length > 0) {
-                formData.append("file", fileInput.files[0]);
-            }
-
-            await fetch("/.netlify/functions/save-journal", {
-                method: "POST",
-                body: formData
-            });
-
-            loadEntries();
+        await fetch("/.netlify/functions/save-journal", {
+            method: "POST",
+            body: formData
         });
 
         loadEntries();
-    </script>
+    });
+
+    // Charger les entrées au démarrage
+    loadEntries();
+</script>
 </body>
 </html>
