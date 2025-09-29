@@ -1,34 +1,84 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Journal</title>
-<link rel="stylesheet" href="assets/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Journal de Bord</title>
+    <link rel="stylesheet" href="style.css"> <!-- Ton CSS existant -->
 </head>
 <body>
-<h1>Admin Journal de Bord</h1>
+    <h1>Admin - Journal de Bord</h1>
 
-<form id="journalForm">
-    <label>Date: <input type="date" id="date" required></label><br>
-    <label>Réalisation: <textarea id="realisation" required></textarea></label><br>
-    <label>Preuve/Notes: <input type="file" id="file"></label><br>
-    <button type="submit">Ajouter</button>
-</form>
+    <!-- Tableau des entrées -->
+    <table id="journalTable" border="1">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Réalisation</th>
+                <th>Preuve / Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Les entrées seront ajoutées ici via JavaScript -->
+        </tbody>
+    </table>
 
-<table border="1" id="journalTable">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Réalisation</th>
-            <th>Preuve/Notes</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!-- Les entrées seront ajoutées ici -->
-    </tbody>
-</table>
+    <!-- Formulaire pour ajouter une nouvelle entrée -->
+    <h2>Ajouter une nouvelle entrée</h2>
+    <form id="journalForm" enctype="multipart/form-data">
+        <label>Date :</label>
+        <input type="date" id="date" required><br>
 
-<script src="admin.js"></script>
+        <label>Réalisation :</label>
+        <textarea id="realisation" required></textarea><br>
+
+        <label>Preuve / Notes (fichier) :</label>
+        <input type="file" id="file"><br>
+
+        <button type="submit">Ajouter</button>
+    </form>
+
+    <script>
+        // Fonction pour charger les entrées depuis Netlify Function
+        async function loadEntries() {
+            const res = await fetch("/.netlify/functions/get-journal");
+            const entries = await res.json();
+            const tbody = document.querySelector("#journalTable tbody");
+            tbody.innerHTML = "";
+            entries.forEach(e => {
+                let fileLink = "";
+                if (e.fileName && e.fileBase64) {
+                    fileLink = `<a href="data:application/octet-stream;base64,${e.fileBase64}" download="${e.fileName}">${e.fileName}</a>`;
+                }
+                tbody.innerHTML += `<tr>
+                    <td>${e.date}</td>
+                    <td>${e.realisation}</td>
+                    <td>${fileLink || e.notes}</td>
+                </tr>`;
+            });
+        }
+
+        // Gestion de l'envoi du formulaire
+        document.getElementById("journalForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append("date", document.getElementById("date").value);
+            formData.append("realisation", document.getElementById("realisation").value);
+            const fileInput = document.getElementById("file");
+            if (fileInput.files.length > 0) {
+                formData.append("file", fileInput.files[0]);
+            }
+
+            await fetch("/.netlify/functions/save-journal", {
+                method: "POST",
+                body: formData
+            });
+
+            loadEntries();
+        });
+
+        loadEntries();
+    </script>
 </body>
 </html>
